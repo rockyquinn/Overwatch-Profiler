@@ -1,0 +1,46 @@
+<html>
+
+<head>
+	<title>Tag Request</title>
+	<script type="text/javascript">
+		function errorTriggered() {
+			alert("An error has occured...")
+		}
+		
+		
+	</script>
+</head>
+
+<body>
+	<form id="tagform" action="tag_result.html" method="GET"> <!--action="../Overwatch_profiler/tag_result.html">-->
+		Tag: 
+		<input class="parameter required" id="tag" name="tag" placeholder="(Enter user tag)" type="text"/>
+		<p/>
+		Platform: 
+		<select class="parameter required" id="platform" name="platform">
+			<option value="pc">PC</option>
+			<option value="xbl">Xbox</option>
+			<option value="psn">Playstation</option>
+		</select>
+		<p/>
+		Region: 
+		<select class="parameter required" id="region" name="region">
+			<option value="global">global</option>
+			<option value="us">us</option>
+			<option value="eu">eu</option>
+			<option value="kr">kr</option>
+			<option value="cn">cn</option>
+		</select>
+		<p/>
+		<input 	class="submit" 
+				type="submit"
+				id="submit"
+				onclick="../Overwatch_profiler/tag_result.html?.displayForms(this.form)" 
+				value="Submit"	/>
+	</form>
+	<p id="p1"></p>
+
+	
+</body>
+
+</html>

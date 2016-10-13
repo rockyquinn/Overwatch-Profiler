@@ -1,43 +1,89 @@
+<!DOCTYPE html>
 <html>
 
 <head>
 	<title>Tag Result</title>
-	<!--
-	<script language="javascript">
-		function callback(data) {
-			console.log(data)
-			}
-	</script>
-	<script src="../tag_result.html?q=callback">
-	</script>
-	-->
-	<script language="javascript">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>
+	(function(){
+		window.onload = init;
 		var tag, platform, region;
+		
+		function init() {
+			processForm();
+			getAchievements();
+		}
 		
 		function processForm() {
 			var parameters = location.search.substring(1).split("&");
 			//Finds the player tag
 			var temp = parameters[0].split("=");
 			tag = unescape(temp[1]);
-			var text = tag;
+			var text = "Tag: "+tag+"<br>";
 			
 			//Finds the platform
 			temp = parameters[1].split("=");
 			platform = unescape(temp[1]);
-			text += " "+platform;
+			text += "Platform: "+platform+"<br>";
 			
 			//Finds the region
 			temp = parameters[2].split("=");
 			region = unescape(temp[1]);
-			text += " "+region+"<br>";
-			document.write(text);
+			text += "Region: "+region+"<br>";
+			document.querySelector("#p1").innerHTML = "<p>"+text+"</p>";
 		}
-		processForm();
+		
+		
+		function getAchievements() {
+			// Puts together the url
+			var url = "https://api.lootbox.eu/" + platform;
+			url = url + "/" + region + "/" + tag + "/";
+			url = url + "achievements";
+			
+			//Call the web service
+			console.log("Loading " + url);
+			$.ajax({
+			  dataType: "json",
+			  url: url,
+			  data: null,
+			  success: jsonLoadedA
+			  });
+		}
+		
+		
+		function jsonLoadedA(obj) {
+			console.log("Achievements stringified = " + JSON.stringify(obj));
+			var html = "<p>";
+			
+			// Ratio of achievements completed
+			html = html + "Achievements completed: ";
+			html = html + obj.finishedAchievements + "<br><br>";
+			
+			// Achievements completed
+			for( var i in obj.achievements) {
+				html = html + obj.achievements[i].name + " ";
+				html = html + obj.achievements[i].finished + " ";
+				html = html + obj.achievements[i].description + " ";
+				html = html + obj.achievements[i].category + "<br>";
+			}
+			html = html+"<br>";
+			
+			// Finally post the results
+			html = html + "</p>";
+			document.querySelector("#profile").innerHTML = html;
+		}
+	}())
 	</script>
 </head>
 
 <body>
-	<p id="p1"></p>
+	<h1>Results</h1>
+	<div id="p1"><p>p1</p></div>
+	<div id="achievements"><p>Achievements</p></div>
+	<div id="platforms"><p>Platforms</p></div>
+	<div id="profile"><p>Profile</p></div>
+	<div id="allHeroes"><p>All Heroes</p></div>
+	
 </body>
 
 </html>

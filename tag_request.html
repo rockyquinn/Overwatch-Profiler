@@ -1,46 +1,283 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-	<title>Tag Request</title>
-	<script type="text/javascript">
-		function errorTriggered() {
-			alert("An error has occured...")
+	<title>Tag Result</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>
+	var tag, platform, region;
+	(function(){
+		window.onload = init;
+		
+		function init() {
+			processForm();
+			getAchievements();
+			getPlatforms();
+			getProfile();
 		}
 		
+		function processForm() {
+			console.log("Processing forms...");
+			var parameters = location.search.substring(1).split("&");
+			// Finds the player tag
+			var temp = parameters[0].split("=");
+			tag = unescape(temp[1]);
+			var text = "Tag: "+tag+"<br>";
+			
+			// Finds the platform
+			temp = parameters[1].split("=");
+			platform = unescape(temp[1]);
+			text += "Platform: "+platform+"<br>";
+			
+			// Finds the region
+			temp = parameters[2].split("=");
+			region = unescape(temp[1]);
+			text += "Region: "+region+"<br>";
+			document.querySelector("#p1").innerHTML = "<p>"+text+"</p>";
+		}
+	}())
+	
+	
+	function getAchievements() {
+		// Puts together the url
+		var url = "https://api.lootbox.eu/" + platform;
+		url += "/" + region + "/" + tag + "/";
+		url += "achievements";
 		
+		//Call the web service
+		console.log("Loading " + url);
+		$.ajax({
+		  dataType: "json",
+		  url: url,
+		  data: null,
+		  success: jsonLoadedAchievements});
+	}
+	
+	function jsonLoadedAchievements(obj) {
+		console.log("JSON loaded: Achievements");
+		var html = "<h2>Achievements</h2><p>";
+		
+		// Ratio of achievements completed
+		html += "Achievements completed: ";
+		html += obj.finishedAchievements + "<br>";
+		
+		// Achievements completed
+		for( var i in obj.achievements ) {
+			var ach = obj.achievements[i];
+			if(ach.name.toString() === "?") { ///DOES NOTHING RIGHT NOW\\\
+				html += "<br>" + ach.category + " Achievements:<br>";
+			}
+			else {
+				html += ach.finished + " ";
+				html += ach.name + " => ";
+				html += ach.description + "<br>";
+			}
+		}
+		html += "<br>";
+			
+		// Finally post the results
+		html += "<br></p>";
+		document.querySelector("#achievements").innerHTML = html;
+	}
+	
+	
+	function getPlatforms() {
+		//	Puts together the url
+		var url = "https://api.lootbox.eu/" + platform;
+		url += "/" + region + "/" + tag + "/";
+		url +="get-platforms";
+			
+		console.log("Loading " + url);
+		$.ajax({
+		  dataType: "json",
+		  url: url,
+		  data: null,
+		  success: jsonLoadedPlatforms});
+	}
+	
+	function jsonLoadedPlatforms(obj) {
+		console.log("JSON loaded: Platforms");
+		var html = "<h2>Platforms</h2><p>";
+		var bol = false;
+		
+		for( var i in obj.profile ) {
+			var pro = obj.profile[i];
+			if( obj.profile[i].hasAccount ) {
+				html += obj.profile[i].platform + "<br>";
+				bol = true;
+			}
+		}
+		
+		if(!bol) {
+			html += "No other platforms found.<br>";
+		}
+		html += "<br></p>";
+		document.querySelector("#platforms").innerHTML = html;
+	}
+
+
+	function getProfile() {
+		// Puts together the url
+		var url = "https://api.lootbox.eu/" + platform;
+		url += "/" + region + "/" + tag + "/";
+		url += "profile";
+		
+		// Call the web service
+		console.log("Loading " + url);
+		$.ajax({
+		  dataType: "json",
+		  url: url,
+		  data: null,
+		  success: jsonLoadedProfile});
+	}
+	
+	function jsonLoadedProfile(obj) {
+		console.log("JSON loaded: Profile");
+		var html = "<h2>Profile</h2><p>";
+		var data = obj.data;
+			
+		// General player info
+		html += "Username: " + data.username + "<br>";
+		html += "Level: " + data.level + "<br><br>";
+			
+		// Quick play data
+		html += "Quick Play data: <br>";
+		html += "Time played: " + data.playtime.quick + "<br>";
+		html += "Won: " + data.games.quick.wins + "<br><br>";
+			
+		// Competitive play data
+		html += "Competitive data: <br>";
+		html += "Time played: " + data.playtime.competitive + "<br>";
+		html += "Rank: " + data.competitive.rank + "<br>";
+		html += "Won: " + data.games.competitive.wins + "<br>";
+		html += "Lost: " + data.games.competitive.lost + "<br><br>";
+			
+			
+		html += "</p>";
+		document.querySelector("#profile").innerHTML = html;
+	}
+
+
+	function getAllHeroes() {
+		// Gets play type from dropdown 
+		var typ = document.querySelector("#playType1").value;
+		
+		// Puts together the url
+		var url = "https://api.lootbox.eu/" + platform;
+		url += "/" + region + "/" + tag + "/";
+		url += typ + "/allHeroes/";
+		
+		// Call the web service
+		$.ajax({
+		  dataType: "json",
+		  url: url,
+		  data: null,
+		  success: jsonLoadedAllHeroes});
+	}
+	
+	function jsonLoadedAllHeroes(obj) {
+		console.log("AllHeroes stringified: " + JSON.stringify(obj));
+		
+		// Cumulative Stats (Current season)
+		var html = "<h3>Cumulative</h3><p>";
+		html += "Time Played: " + obj.TimePlayed + "<br>";
+		html += "Games Played: " + obj.GamesPlayed + "<br>";
+		html += "Wins: " + obj.GamesWon + "<br>";
+		html += "Losses: " + obj.GamesLost + "<br>";
+		html += "Melee Final Blows: " + obj.MeleeFinalBlows + "<br>";
+		html += "Solo Kills: " + obj.SoloKills + "<br>";
+		html += "Objective Kills: " + obj.ObjectiveKills + "<br>";
+		html += "Final Blows: " + obj.FinalBlows + "<br>";
+		html += "Damage Done: " + obj.DamageDone + "<br>";
+		html += "Eliminations: " + obj.Eliminations + "<br>";
+		html += "Environmental Kills: " + obj.EnvironmentalKills + "<br>";
+		html += "Deaths: " + obj.Deaths + "<br>";
+		html += "Environmental Deaths: " + obj.EnvironmentalDeaths + "<br>";
+		html += "Healing Done: " + obj.HealingDone + "<br>";
+		html += "Offensive Assists: " + obj.OffensiveAssists + "<br>";
+		html += "Defensive Assists: " + obj.DefensiveAssists + "<br>";
+		html += "Objective Time: " + obj.ObjectiveTime + "<br>";
+		html += "Time Spent on Fire: " + obj.TimeSpentonFire + "<br>";
+		html += "Cards: " + obj.Cards + "<br>";
+		html += "Medals: " + obj.Medals + "<br>";
+		html += "Gold Medals: " + obj["Medals-Gold"] + "<br>";
+		html += "Silver Medals: " + obj["Medals-Silver"] + "<br>";
+		html += "Bronze Medals: " + obj["Medals-Bronze"] + "<br>";
+		
+		
+		// Most-in-a-game Stats (Current Season)
+		// Not in API 	=> MeleeFinalBlows, EnvironmentalKills,
+		//				=> Deaths
+		html += "</p><h3>Most in a game</h3><p>";
+		html += "Melee Final Blows: " + obj["MeleeFinalBlow-MostinGame"] + "<br>";
+		html += "Solo Kills: " + obj["SoloKills-MostinGame"] + "<br>";
+		html += "Objective Kills: " + obj["ObjectiveKills-MostinGame"] + "<br>";
+		html += "Final Blows: " + obj["FinalBlows-MostinGame"] + "<br>";
+		html += "Damage Done: " + obj["DamageDone-MostinGame"] + "<br>";
+		html += "Eliminations: " + obj["Eliminations-MostinGame"] + "<br>";
+		html += "Healing Done: " + obj["HealingDone-MostinGame"] + "<br>";
+		html += "Offensive Assists: " + obj["OffensiveAssists-MostinGame"] + "<br>";
+		html += "Defensive Assists: " + obj["DefensiveAssists-MostinGame"] + "<br>";
+		html += "Objective Time: " + obj["ObjectiveTime-MostinGame"] + "<br>";
+		html += "Time Spent on Fire: " + obj["TimeSpentonFire-MostinGame"] + "<br>";
+			
+		// Average Stats (Current Season)
+		// Not in API	=> EnvironmentalKills
+		html += "</p><h3>Average</h3><p>";
+		html += "Melee Final Blows: " + obj["MeleeFinalBlows-Average"] + "<br>";
+		html += "Solo Kills: " + obj["SoloKills-Average"] + "<br>";
+		html += "Objective Kills: " + obj["ObjectiveKills-Average"] + "<br>";
+		html += "Final Blows: " + obj["FinalBlows-Average"] + "<br>";
+		html += "Damage Done: " + obj["DamageDone-Average"] + "<br>";
+		html += "Eliminations: " + obj["Eliminations-Average"] + "<br>";
+		html += "Deaths: " + obj["Deaths-Average"] + "<br>";
+		html += "Healing Done: " + obj["HealingDone-Average"] + "<br>";
+		html += "Offensive Assists: " + obj["OffensiveAssists-Average"] + "<br>";
+		html += "Defensive Assists: " + obj["DefensiveAssists-Average"] + "<br>";
+		html += "Objective Time: " + obj["ObjectiveTime-Average"] + "<br>";
+		html += "Time Spent on Fire: " + obj["TimeSpentonFire-Average"] + "<br>";
+		
+		html += "<br></p>";
+		document.querySelector("#allHeroes").innerHTML = html;
+	}
+
+	
+	function getHero() {
+	
+	}
 	</script>
 </head>
 
 <body>
-	<form id="tagform" action="tag_result.html" method="GET"> <!--action="../Overwatch_profiler/tag_result.html">-->
-		Tag: 
-		<input class="parameter required" id="tag" name="tag" placeholder="(Enter user tag)" type="text"/>
-		<p/>
-		Platform: 
-		<select class="parameter required" id="platform" name="platform">
-			<option value="pc">PC</option>
-			<option value="xbl">Xbox</option>
-			<option value="psn">Playstation</option>
+	<h1>Results</h1>
+	<div id="p1"><p>p1</p></div>
+	<div id="achievements"><p>Achievements</p></div>
+	<div id="platforms"><p>Platforms</p></div>
+	<div id="profile"><p>Profile</p></div>
+	<div>
+		<h2>Overall Stats</h2>
+		<p>(Current competitive season only)</p>
+		<select id="playType1">
+			<option value="competitive-play">Competitive</option>
+			<option value="quick-play">Quick Play</option>
 		</select>
-		<p/>
-		Region: 
-		<select class="parameter required" id="region" name="region">
-			<option value="global">global</option>
-			<option value="us">us</option>
-			<option value="eu">eu</option>
-			<option value="kr">kr</option>
-			<option value="cn">cn</option>
+		<button type="button" onclick="getAllHeroes()">Submit</button>
+		<div id="allHeroes"/>
+	</div>
+	<div>
+		<h2>Specific Hero Stats</h2>
+		<p>(Current competitive season only)</p>
+		<select id="playType2">
+			<option value="competitive-play">Competitive</option>
+			<option value="quick-play">Quick Play</option>
 		</select>
-		<p/>
-		<input 	class="submit" 
-				type="submit"
-				id="submit"
-				onclick="../Overwatch_profiler/tag_result.html?.displayForms(this.form)" 
-				value="Submit"	/>
-	</form>
-	<p id="p1"></p>
-
-	
+		<select id="heroList1">
+			<option value="Lucio">Lucio</option>
+			<option value="Mercy">Mercy</option>
+		</select>
+		<button type="button" onclick="getHero()">Submit</button>
+		<div id="hero"/>
+	</div>
 </body>
 
 </html>

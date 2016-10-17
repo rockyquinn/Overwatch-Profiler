@@ -2,88 +2,32 @@
 <html>
 
 <head>
-	<title>Tag Result</title>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script>
-	(function(){
-		window.onload = init;
-		var tag, platform, region;
-		
-		function init() {
-			processForm();
-			getAchievements();
-		}
-		
-		function processForm() {
-			var parameters = location.search.substring(1).split("&");
-			//Finds the player tag
-			var temp = parameters[0].split("=");
-			tag = unescape(temp[1]);
-			var text = "Tag: "+tag+"<br>";
-			
-			//Finds the platform
-			temp = parameters[1].split("=");
-			platform = unescape(temp[1]);
-			text += "Platform: "+platform+"<br>";
-			
-			//Finds the region
-			temp = parameters[2].split("=");
-			region = unescape(temp[1]);
-			text += "Region: "+region+"<br>";
-			document.querySelector("#p1").innerHTML = "<p>"+text+"</p>";
-		}
-		
-		
-		function getAchievements() {
-			// Puts together the url
-			var url = "https://api.lootbox.eu/" + platform;
-			url = url + "/" + region + "/" + tag + "/";
-			url = url + "achievements";
-			
-			//Call the web service
-			console.log("Loading " + url);
-			$.ajax({
-			  dataType: "json",
-			  url: url,
-			  data: null,
-			  success: jsonLoadedA
-			  });
-		}
-		
-		
-		function jsonLoadedA(obj) {
-			console.log("Achievements stringified = " + JSON.stringify(obj));
-			var html = "<p>";
-			
-			// Ratio of achievements completed
-			html = html + "Achievements completed: ";
-			html = html + obj.finishedAchievements + "<br><br>";
-			
-			// Achievements completed
-			for( var i in obj.achievements) {
-				html = html + obj.achievements[i].name + " ";
-				html = html + obj.achievements[i].finished + " ";
-				html = html + obj.achievements[i].description + " ";
-				html = html + obj.achievements[i].category + "<br>";
-			}
-			html = html+"<br>";
-			
-			// Finally post the results
-			html = html + "</p>";
-			document.querySelector("#profile").innerHTML = html;
-		}
-	}())
-	</script>
+	<title>Tag Request</title>
 </head>
 
 <body>
-	<h1>Results</h1>
-	<div id="p1"><p>p1</p></div>
-	<div id="achievements"><p>Achievements</p></div>
-	<div id="platforms"><p>Platforms</p></div>
-	<div id="profile"><p>Profile</p></div>
-	<div id="allHeroes"><p>All Heroes</p></div>
-	
+	<form id="tagform" action="tag_result.html" method="GET">
+		Tag: 
+		<input class="parameter required" id="tag" name="tag" placeholder="(Enter user tag)" type="text"/>
+		<p/>
+		Platform: 
+		<select class="parameter required" id="platform" name="platform">
+			<option value="pc">PC</option>
+			<option value="xbl">Xbox</option>
+			<option value="psn">Playstation</option>
+		</select>
+		<p/>
+		Region: 
+		<select class="parameter required" id="region" name="region">
+			<option value="global">global</option>
+			<option value="us">us</option>
+			<option value="eu">eu</option>
+			<option value="kr">kr</option>
+			<option value="cn">cn</option>
+		</select>
+		<p/>
+		<input class="submit" type="submit" value="Submit"	/>
+	</form>
 </body>
 
 </html>
